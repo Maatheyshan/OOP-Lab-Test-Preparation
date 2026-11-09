@@ -18,6 +18,8 @@ import java.util.*;
 
  public int energy(long id){
   // TODO Task 3: retrieve and calculate energy; raise MissionNotFoundException if absent.
+
+
   throw new UnsupportedOperationException("Task 3");
  }
 
@@ -26,10 +28,77 @@ import java.util.*;
   throw new UnsupportedOperationException("Task 3");
  }
 
- public DispatchPlan plan(int capacity,boolean urgentOnly){
-  // TODO Task 2: filter optional urgent missions (priority >=3), sort priority DESC,
-  // energy ASC, ID ASC; select greedily if energy fits; preserve skipped IDs.
-  throw new UnsupportedOperationException("Task 2");
+
+ public DispatchPlan plan(int capacity, boolean urgentOnly) {
+
+  // Validate capacity.
+  if (capacity <= 0) {
+   throw new IllegalArgumentException(
+           "Capacity must be greater than zero."
+   );
+  }
+
+  // Copy all missions from the repository.
+  List<DispatchMission> eligible = new ArrayList<>(repo.all());
+
+  // Filter urgent missions (priority >= 3).
+  if (urgentOnly) {
+   eligible.removeIf(mission -> mission.priority() < 3);
+  }
+
+  // Sort by priority DESC, energy ASC, and ID ASC.
+  eligible.sort(
+          Comparator.comparingInt(DispatchMission::priority)
+                  .reversed()
+                  .thenComparingInt(DispatchMission::energyUnits)
+                  .thenComparingLong(DispatchMission::getId)
+  );
+
+  List<PlanLine> selected = new ArrayList<>();
+  List<Long> skipped = new ArrayList<>();
+
+  int energyUsed = 0;
+
+  // Traverse all eligible missions.
+  for (DispatchMission mission : eligible) {
+
+   int energy = mission.energyUnits();
+
+   if (energy <= capacity - energyUsed) {
+
+    selected.add(new PlanLine(
+            mission.getId(),
+            mission.getClass().getSimpleName(),
+            mission.priority(),
+            energy
+    ));
+
+    energyUsed += energy;
+
+   } else {
+    skipped.add(mission.getId());
+   }
+  }
+
+  // Return the completed dispatch plan.
+  return new DispatchPlan(
+          capacity,
+          energyUsed,
+          capacity - energyUsed,
+          selected,
+          skipped
+  );
  }
 
-}
+ private void validateRange(
+         String field,
+         long value,
+         long minimum,
+         long maximum) {
+
+  if (value < minimum || value > maximum) {
+   throw new IllegalArgumentException(
+           field + " must be between " + minimum + " and " + maximum
+   );
+  }
+ }
