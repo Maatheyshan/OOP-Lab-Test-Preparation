@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
  public MissionRepository(){
   map.put(101L,new GroundMission(101,12,3,true));
   map.put(102L,new GroundMission(102,4,2,false));
-  map.put(103L,new NewAirMission(103,8,1,3,true));
+
   // TODO after Task 2: seed AirMission(103,8,1,3,true).
  }
  public Collection<DispatchMission> all(){
